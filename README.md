@@ -4,7 +4,7 @@ Live perp market data on a 576×288 monochrome display: mark/oracle, 24h change,
 funding APR, open interest and a 24h range sparkline for the top Hyperliquid
 markets. Read-only, no keys, no orders.
 
-Built for the **Even Realities G2** hackathon (Polymarket/Hyperliquid track).
+Built for the **Even Realities G2** hackathon, **Crypto & DeFi** track (Hyperliquid).
 
 ## Demo
 
@@ -70,6 +70,13 @@ npm run pack           # build + evenhub pack app.json dist
 │ 1/24 · scroll · tap open · 2x exit         │  footer 36 px
 └────────────────────────────────────────────┘
 ```
+
+## What existed before the hackathon
+
+Nothing in this repository: it was created on 2026-11-24 for the Even Realities
+G2 hackathon. The Even Hub SDK/templates and the Hyperliquid public API are
+external dependencies; no app code predates the event. The demo video was
+recorded in the official Even Hub simulator.
 
 ## Data and honesty
 
