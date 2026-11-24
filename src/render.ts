@@ -1,4 +1,5 @@
 import type { Market } from './hl'
+import { RECENT_MAX } from './recent'
 
 const BLOCKS = '▁▂▃▄▅▆▇█'
 
@@ -34,25 +35,32 @@ export function sparkline(values: number[]): string {
     .join('')
 }
 
-function row(m: Market, marker: string): string {
+function row(m: Market, marker: string, isRecent: boolean): string {
   const coin = m.coin.padEnd(6).slice(0, 6)
   const price = fmtPrice(m.mark).padStart(8)
   const chg = fmtPct(m.change24h).padStart(7)
   const fund = `f${fmtPct(m.fundingApr)}`.padStart(8)
-  return `${marker}${coin}${price} ${chg} ${fund}`
+  // Trailing 4-char tag; rows stay on the same 7-line grid.
+  const tag = isRecent ? ' ·REC' : ''
+  return `${marker}${coin}${price} ${chg} ${fund}${tag}`
 }
 
-export function listBody(markets: Market[], selected: number, rows = 7): string {
+export function listBody(
+  markets: Market[],
+  selected: number,
+  recent: readonly string[] = [],
+  rows = 7,
+): string {
   if (!markets.length) return 'loading markets…'
   const start = Math.max(0, Math.min(selected - Math.floor(rows / 2), markets.length - rows))
   const slice = markets.slice(start, start + rows)
   return slice
-    .map((m, i) => row(m, start + i === selected ? '>' : ' '))
+    .map((m, i) => row(m, start + i === selected ? '>' : ' ', recent.includes(m.coin)))
     .join('\n')
 }
 
-export function listFooter(selected: number, total: number): string {
-  return `${selected + 1}/${total} · scroll · tap open · 2x exit`
+export function listFooter(selected: number, total: number, recentCount = 0): string {
+  return `${selected + 1}/${total} · scroll · tap open · 2x exit · recent: local ${recentCount}/${RECENT_MAX}`
 }
 
 export function detailBody(m: Market, candles: number[]): string {

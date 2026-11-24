@@ -8,6 +8,7 @@ import {
 } from '@evenrealities/even_hub_sdk'
 import { fetchCandles, fetchMarkets, type Market } from './hl'
 import { detailBody, detailFooter, listBody, listFooter } from './render'
+import { RecentStore } from './recent'
 
 type View = 'list' | 'detail'
 
@@ -25,6 +26,11 @@ const state = {
 
 let bridge: EvenAppBridge | null = null
 let candleReq = 0
+const recent = new RecentStore()
+
+function remember(coin: string): void {
+  void recent.add(coin)
+}
 
 function headerText(): string {
   if (state.error) return 'HL GLASS · offline'
@@ -40,7 +46,7 @@ function bodyText(): string {
   if (!state.markets.length) return 'loading markets…'
   const m = state.markets[state.selected]
   if (!m) return 'no markets'
-  return state.view === 'detail' ? detailBody(m, state.candles) : listBody(state.markets, state.selected)
+  return state.view === 'detail' ? detailBody(m, state.candles) : listBody(state.markets, state.selected, recent.list)
 }
 
 function footerText(): string {
@@ -48,7 +54,7 @@ function footerText(): string {
   if (!state.markets.length) return 'connecting · 2x exit'
   return state.view === 'detail'
     ? detailFooter(state.selected, state.markets.length)
-    : listFooter(state.selected, state.markets.length)
+    : listFooter(state.selected, state.markets.length, recent.count)
 }
 
 async function loadCandles(): Promise<void> {
@@ -82,8 +88,10 @@ async function refresh(): Promise<void> {
 
 function open(): void {
   if (state.view === 'list') {
+    const m = state.markets[state.selected]
     state.view = 'detail'
     state.candles = []
+    if (m) remember(m.coin)
     void loadCandles().then(render)
     render()
   } else {
@@ -98,6 +106,8 @@ function move(dir: number): void {
   state.selected = (state.selected + dir + n) % n
   if (state.view === 'detail') {
     state.candles = []
+    const m = state.markets[state.selected]
+    if (m) remember(m.coin)
     void loadCandles().then(render)
   }
   render()
@@ -218,6 +228,7 @@ function withTimeout<T>(p: Promise<T>, ms: number): Promise<T | null> {
 async function boot(): Promise<void> {
   render()
   const b = await withTimeout(waitForEvenAppBridge(), 2500)
+  await recent.load(b)
   if (b && (await startBridge(b))) {
     render()
   } else {
