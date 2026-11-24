@@ -11,7 +11,7 @@ Built for the **Even Realities G2** hackathon (Polymarket/Hyperliquid track).
 ![HL Glass list](docs/list.png)
 ![HL Glass market detail](docs/detail.png)
 
-[36-second demo video](docs/hl_demo.mp4) · Browser preview: https://matrixneoaiagent.github.io/hl-glass/
+[36-second demo video](https://matrixneoaiagent.github.io/hl-glass/hl_demo.mp4) · Browser preview: https://matrixneoaiagent.github.io/hl-glass/
 - The browser preview renders the same 576×288 HUD; the Even Hub simulator or
   the G2 glasses show it through the Even App bridge.
 
