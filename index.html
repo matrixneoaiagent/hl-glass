@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no" />
+    <title>HL Glass — Hyperliquid HUD for Even G2</title>
+    <style>
+      html, body {
+        margin: 0;
+        height: 100%;
+        background: #0b0f0c;
+        color: #9dffb0;
+        font: 14px/1.4 ui-monospace, SFMono-Regular, Menlo, monospace;
+        touch-action: manipulation;
+        -webkit-text-size-adjust: 100%;
+        overscroll-behavior: none;
+      }
+      #app { display: flex; height: 100%; }
+      #preview {
+        min-height: 100%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 18px;
+        padding: 32px 16px;
+        box-sizing: border-box;
+      }
+      #preview[hidden] { display: none; }
+      .pv-frame {
+        width: 576px;
+        height: 288px;
+        box-sizing: border-box;
+        padding: 4px 6px;
+        border: 1px solid #2c5c38;
+        border-radius: 10px;
+        background: #050805;
+        color: #9dffb0;
+        box-shadow: 0 0 0 6px #101810, 0 18px 60px rgba(0, 255, 120, 0.12);
+        transform: scale(1.35);
+        transform-origin: top center;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+        text-shadow: 0 0 6px rgba(80, 255, 130, 0.35);
+      }
+      .pv-header { height: 30px; line-height: 27px; font-size: 15px; opacity: 0.85; white-space: pre; }
+      .pv-body { height: 222px; line-height: 27px; font-size: 16px; white-space: pre; }
+      .pv-footer { height: 36px; line-height: 27px; font-size: 12px; opacity: 0.7; white-space: pre; }
+      .pv-note { max-width: 640px; text-align: center; color: #6f8f78; font: 12px/1.5 ui-monospace, monospace; }
+      @media (max-width: 760px) {
+        .pv-frame { transform: scale(0.9); }
+      }
+    </style>
+  </head>
+  <body>
+    <div id="app"></div>
+    <div id="preview" hidden>
+      <div class="pv-frame">
+        <div id="pv-header" class="pv-header"></div>
+        <div id="pv-body" class="pv-body"></div>
+        <div id="pv-footer" class="pv-footer"></div>
+      </div>
+      <p class="pv-note">
+        Browser preview of the same 576×288 view that renders on the Even G2.
+        Arrow keys move, Enter opens, Esc exits on the glasses.
+      </p>
+    </div>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
