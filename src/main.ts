@@ -6,7 +6,9 @@ import {
   OsEventTypeList,
   type EvenAppBridge,
 } from '@evenrealities/even_hub_sdk'
-import { fetchCandles, fetchMarkets, type Market } from './hl'
+import { fetchBinanceCandles, fetchBinanceMarkets } from './binance'
+import { fetchHlCandles, fetchHlMarkets } from './hl'
+import { VENUE_LABEL, type Market } from './market'
 import { detailBody, detailFooter, listBody, listFooter } from './render'
 import { RecentStore } from './recent'
 
@@ -22,23 +24,28 @@ const state = {
   view: 'list' as View,
   candles: [] as number[],
   error: '',
+  hlDown: false,
+  bnDown: false,
 }
 
 let bridge: EvenAppBridge | null = null
 let candleReq = 0
 const recent = new RecentStore()
 
-function remember(coin: string): void {
-  void recent.add(coin)
+function remember(m: Market): void {
+  void recent.add(m.key)
 }
 
 function headerText(): string {
   if (state.error) return 'HL GLASS · offline'
   if (state.view === 'detail') {
     const m = state.markets[state.selected]
-    return m ? `${m.coin} · PERP` : 'HL GLASS'
+    return m ? `${m.coin} · ${VENUE_LABEL[m.venue]}` : 'HL GLASS'
   }
-  return `HL GLASS · top ${state.markets.length} · f=APR`
+  if (!state.markets.length) return 'HL GLASS · connecting'
+  if (state.hlDown) return 'HL GLASS · BN only · HL down'
+  if (state.bnDown) return 'HL GLASS · HL only · BN down'
+  return `HL GLASS · top ${state.markets.length} · HL+BN`
 }
 
 function bodyText(): string {
@@ -62,7 +69,10 @@ async function loadCandles(): Promise<void> {
   if (!m) return
   const req = ++candleReq
   try {
-    const candles = await fetchCandles(m.coin)
+    const candles =
+      m.venue === 'BN'
+        ? await fetchBinanceCandles(m.symbol)
+        : await fetchHlCandles(m.symbol)
     if (req === candleReq) state.candles = candles
   } catch {
     if (req === candleReq) state.candles = []
@@ -70,18 +80,32 @@ async function loadCandles(): Promise<void> {
 }
 
 async function refresh(): Promise<void> {
-  try {
-    const markets = await fetchMarkets(24)
-    if (markets.length) {
-      state.markets = markets
-      if (state.selected >= markets.length) state.selected = 0
-      state.error = ''
-      if (state.view === 'detail') await loadCandles()
-    } else {
-      state.error = 'no market data'
-    }
-  } catch {
-    state.error = 'hyperliquid unreachable'
+  const prevKey = state.markets[state.selected]?.key
+  const [hl, bn] = await Promise.allSettled([
+    fetchHlMarkets(24),
+    fetchBinanceMarkets(12),
+  ])
+
+  const markets: Market[] = []
+  if (hl.status === 'fulfilled') markets.push(...hl.value)
+  if (bn.status === 'fulfilled') markets.push(...bn.value)
+  markets.sort((a, b) => b.vol24h - a.vol24h)
+
+  state.hlDown = hl.status === 'rejected'
+  state.bnDown = bn.status === 'rejected'
+  console.info(
+    `[hlglass] refresh hl=${hl.status === 'fulfilled' ? hl.value.length : 'down'} ` +
+      `bn=${bn.status === 'fulfilled' ? bn.value.length : 'down'} merged=${markets.length}`,
+  )
+
+  if (markets.length) {
+    state.markets = markets
+    state.error = ''
+    const kept = prevKey ? markets.findIndex(m => m.key === prevKey) : -1
+    state.selected = kept >= 0 ? kept : Math.min(state.selected, markets.length - 1)
+    if (state.view === 'detail') await loadCandles()
+  } else {
+    state.error = 'HL + BN unreachable'
   }
   render()
 }
@@ -91,7 +115,7 @@ function open(): void {
     const m = state.markets[state.selected]
     state.view = 'detail'
     state.candles = []
-    if (m) remember(m.coin)
+    if (m) remember(m)
     void loadCandles().then(render)
     render()
   } else {
@@ -107,7 +131,7 @@ function move(dir: number): void {
   if (state.view === 'detail') {
     state.candles = []
     const m = state.markets[state.selected]
-    if (m) remember(m.coin)
+    if (m) remember(m)
     void loadCandles().then(render)
   }
   render()

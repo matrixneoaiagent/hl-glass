@@ -1,18 +1,7 @@
 // Hyperliquid public API client. Read-only: no keys, no orders.
 // CORS is `*` on api.hyperliquid.xyz, so the webview can call it directly.
 
-export interface Market {
-  coin: string
-  mark: number
-  oracle: number
-  prevDay: number
-  change24h: number
-  funding: number
-  fundingApr: number
-  oiUsd: number
-  vol24h: number
-  maxLeverage: number
-}
+import { annualiseFunding, type Market } from './market'
 
 interface UniverseItem {
   name: string
@@ -41,11 +30,11 @@ async function post<T>(body: unknown): Promise<T> {
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(body),
   })
-  if (!res.ok) throw new Error(`HTTP ${res.status}`)
+  if (!res.ok) throw new Error(`hyperliquid HTTP ${res.status}`)
   return (await res.json()) as T
 }
 
-export async function fetchMarkets(limit = 20): Promise<Market[]> {
+export async function fetchHlMarkets(limit = 20): Promise<Market[]> {
   const [meta, ctxs] = await post<[{ universe: UniverseItem[] }, AssetCtx[]]>({
     type: 'metaAndAssetCtxs',
   })
@@ -63,15 +52,20 @@ export async function fetchMarkets(limit = 20): Promise<Market[]> {
     if (!Number.isFinite(mark) || !Number.isFinite(prevDay) || prevDay <= 0) continue
     if (!Number.isFinite(vol) || vol <= 0) continue
     out.push({
+      venue: 'HL',
+      key: `HL:${u.name}`,
+      symbol: u.name,
       coin: u.name,
       mark,
-      oracle: Number.isFinite(oracle) ? oracle : mark,
-      prevDay,
+      index: Number.isFinite(oracle) ? oracle : mark,
       change24h: ((mark - prevDay) / prevDay) * 100,
-      funding: Number.isFinite(funding) ? funding : 0,
-      fundingApr: (Number.isFinite(funding) ? funding : 0) * 24 * 365 * 100,
-      oiUsd: (Number.isFinite(oi) ? oi : 0) * mark,
+      funding: Number.isFinite(funding) ? funding : Number.NaN,
+      // Hyperliquid funding is hourly.
+      fundingApr: annualiseFunding(funding, 24 * 365),
+      oiUsd: Number.isFinite(oi) ? oi * mark : Number.NaN,
       vol24h: vol,
+      high24h: Number.NaN,
+      low24h: Number.NaN,
       maxLeverage: u.maxLeverage,
     })
   }
@@ -79,7 +73,7 @@ export async function fetchMarkets(limit = 20): Promise<Market[]> {
   return out.slice(0, limit)
 }
 
-export async function fetchCandles(coin: string): Promise<number[]> {
+export async function fetchHlCandles(coin: string): Promise<number[]> {
   const now = Date.now()
   const rows = await post<Candle[]>({
     type: 'candleSnapshot',

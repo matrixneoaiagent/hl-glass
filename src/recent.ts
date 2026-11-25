@@ -1,16 +1,23 @@
 // Local "recently viewed" list.
 //
-// Write path: when a market detail is opened we persist the coin names through
+// Write path: when a market detail is opened we persist the market keys through
 // the Even Hub SDK (`bridge.setLocalStorage` / `bridge.getLocalStorage`).  On
 // the glasses the host stores this locally; there is no account, no keys and
 // no trading side effect.  When the bridge is unavailable (browser preview) or
 // the host rejects the call, we mirror the same list to `window.localStorage`
 // so the marker still works and the read-back path stays testable.
+//
+// Keys are source-qualified (`BN:BTCUSDT`, `HL:BTC`) so the same coin can be
+// recent on both venues without colliding.
 
 import type { EvenAppBridge } from '@evenrealities/even_hub_sdk'
 
-export const RECENT_KEY = 'hlglass.recent.v1'
+export const RECENT_KEY = 'hlglass.recent.v2'
 export const RECENT_MAX = 8
+
+function validKey(key: string): boolean {
+  return key.length <= 24 && /^(HL|BN):[A-Za-z0-9:_-]{1,20}$/.test(key)
+}
 
 function clean(raw: string): string[] {
   let parsed: unknown
@@ -23,9 +30,9 @@ function clean(raw: string): string[] {
   const out: string[] = []
   for (const value of parsed) {
     if (typeof value !== 'string') continue
-    const coin = value.trim()
-    if (!coin || coin.length > 12 || !/^[A-Za-z0-9:_-]+$/.test(coin)) continue
-    if (!out.includes(coin)) out.push(coin)
+    const key = value.trim()
+    if (!validKey(key)) continue
+    if (!out.includes(key)) out.push(key)
     if (out.length >= RECENT_MAX) break
   }
   return out
@@ -90,14 +97,14 @@ export class RecentStore {
     )
     this.coins = merged.slice(0, RECENT_MAX)
     console.info(
-      `[hlglass] recent load backend=${this.backend} count=${this.coins.length} coins=${this.coins.join(',') || '-'}`,
+      `[hlglass] recent load backend=${this.backend} count=${this.coins.length} keys=${this.coins.join(',') || '-'}`,
     )
   }
 
-  /** Move a coin to the front and persist the capped list. */
-  async add(coin: string): Promise<void> {
-    const name = coin.trim()
-    if (!name || !/^[A-Za-z0-9:_-]+$/.test(name)) return
+  /** Move a market key to the front and persist the capped list. */
+  async add(key: string): Promise<void> {
+    const name = key.trim()
+    if (!validKey(name)) return
     const next = [name, ...this.coins.filter(c => c !== name)].slice(0, RECENT_MAX)
     const value = JSON.stringify(next)
     this.coins = next

@@ -1,4 +1,9 @@
-import type { Market } from './hl'
+import {
+  FUNDING_PERIOD,
+  VENUE_LABEL,
+  VENUE_TAG,
+  type Market,
+} from './market'
 import { RECENT_MAX } from './recent'
 
 const BLOCKS = '▁▂▃▄▅▆▇█'
@@ -40,9 +45,10 @@ function row(m: Market, marker: string, isRecent: boolean): string {
   const price = fmtPrice(m.mark).padStart(8)
   const chg = fmtPct(m.change24h).padStart(7)
   const fund = `f${fmtPct(m.fundingApr)}`.padStart(8)
-  // Trailing 4-char tag; rows stay on the same 7-line grid.
-  const tag = isRecent ? ' ·REC' : ''
-  return `${marker}${coin}${price} ${chg} ${fund}${tag}`
+  // Trailing venue tag plus the optional recent marker; both fit the 7-line grid.
+  const tag = `·${VENUE_TAG[m.venue]}`
+  const rec = isRecent ? ' ·REC' : ''
+  return `${marker}${coin}${price} ${chg} ${fund} ${tag}${rec}`
 }
 
 export function listBody(
@@ -55,7 +61,7 @@ export function listBody(
   const start = Math.max(0, Math.min(selected - Math.floor(rows / 2), markets.length - rows))
   const slice = markets.slice(start, start + rows)
   return slice
-    .map((m, i) => row(m, start + i === selected ? '>' : ' ', recent.includes(m.coin)))
+    .map((m, i) => row(m, start + i === selected ? '>' : ' ', recent.includes(m.key)))
     .join('\n')
 }
 
@@ -65,16 +71,19 @@ export function listFooter(selected: number, total: number, recentCount = 0): st
 
 export function detailBody(m: Market, candles: number[]): string {
   const spark = sparkline(candles)
-  const lo = candles.length ? Math.min(...candles) : Number.NaN
-  const hi = candles.length ? Math.max(...candles) : Number.NaN
-  const range = Number.isFinite(lo) ? `range ${fmtPrice(lo)} – ${fmtPrice(hi)}` : 'range —'
+  const low = Number.isFinite(m.low24h) ? m.low24h : candles.length ? Math.min(...candles) : Number.NaN
+  const high = Number.isFinite(m.high24h) ? m.high24h : candles.length ? Math.max(...candles) : Number.NaN
+  const range = Number.isFinite(low) ? `${fmtPrice(low)} – ${fmtPrice(high)}` : '—'
+  const priceLabel = m.venue === 'BN' ? 'idx' : 'ora'
+  const max = Number.isFinite(m.maxLeverage) ? `${m.maxLeverage}x` : '—'
+  const period = FUNDING_PERIOD[m.venue]
   const lines = [
-    `mark ${fmtPrice(m.mark)}  ora ${fmtPrice(m.oracle)}`,
-    `24h ${fmtPct(m.change24h)}  vol ${fmtUsd(m.vol24h)}`,
-    `OI ${fmtUsd(m.oiUsd)}  max ${m.maxLeverage}x`,
-    `fund ${fmtPct(m.fundingApr)} APR (${fmtPct(m.funding * 100, 4)}/h)`,
-    range,
-    spark ? `${spark}` : '24h chart unavailable',
+    `${VENUE_LABEL[m.venue]} PERP · mark ${fmtPrice(m.mark)}`,
+    `${priceLabel} ${fmtPrice(m.index)}  24h ${fmtPct(m.change24h)}`,
+    `vol ${fmtUsd(m.vol24h)}  OI ${fmtUsd(m.oiUsd)}`,
+    `fund ${fmtPct(m.fundingApr, 2)} APR (${fmtPct(m.funding * 100, 4)}/${period})`,
+    `max ${max}  range ${range}`,
+    spark ? spark : '24h chart unavailable',
   ]
   return lines.join('\n')
 }
