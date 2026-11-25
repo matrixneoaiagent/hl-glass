@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no" />
-    <title>HL Glass — Hyperliquid + Binance HUD for Even G2</title>
+    <title>HL Glass — cross-exchange HUD + paper session for Even G2</title>
     <style>
       html, body {
         margin: 0;
@@ -45,7 +45,8 @@
         text-shadow: 0 0 6px rgba(80, 255, 130, 0.35);
       }
       .pv-header { height: 30px; line-height: 27px; font-size: 15px; opacity: 0.85; white-space: pre; }
-      .pv-body { height: 222px; line-height: 27px; font-size: 16px; white-space: pre; }
+      .pv-body { height: 198px; line-height: 27px; font-size: 16px; white-space: pre; }
+      .pv-banner { height: 24px; line-height: 24px; font-size: 13px; color: #d8ffe2; opacity: 0.95; white-space: pre; }
       .pv-footer { height: 36px; line-height: 27px; font-size: 12px; opacity: 0.7; white-space: pre; }
       .pv-note { max-width: 640px; text-align: center; color: #6f8f78; font: 12px/1.5 ui-monospace, monospace; }
       @media (max-width: 760px) {
@@ -59,13 +60,15 @@
       <div class="pv-frame">
         <div id="pv-header" class="pv-header"></div>
         <div id="pv-body" class="pv-body"></div>
+        <div id="pv-banner" class="pv-banner"></div>
         <div id="pv-footer" class="pv-footer"></div>
       </div>
       <p class="pv-note">
         Browser preview of the same 576×288 view that renders on the Even G2.
         The board merges Hyperliquid (·HL) and Binance USDⓈ-M (·BN) perps by 24h
         volume. Arrow keys move, Enter opens a market; opened markets are
-        remembered in the local recent list and marked ·REC.
+        remembered in the local recent list and marked ·REC. The PAPER session
+        is local only: no keys, no orders, no custody.
       </p>
     </div>
     <script type="module" src="/src/main.ts"></script>

@@ -30,6 +30,20 @@ export function fmtPct(n: number, digits = 1): string {
   return `${n >= 0 ? '+' : ''}${n.toFixed(digits)}%`
 }
 
+export function fmtMoney(n: number, digits = 0): string {
+  if (!Number.isFinite(n)) return '—'
+  const sign = n < 0 ? '-' : ''
+  return `${sign}$${Math.abs(n).toLocaleString('en-US', {
+    minimumFractionDigits: digits,
+    maximumFractionDigits: digits,
+  })}`
+}
+
+export function fmtSignedUsd(n: number, digits = 2): string {
+  if (!Number.isFinite(n)) return '—'
+  return `${n >= 0 ? '+' : '-'}${fmtMoney(Math.abs(n), digits)}`
+}
+
 export function sparkline(values: number[]): string {
   if (values.length < 2) return ''
   const min = Math.min(...values)
@@ -51,22 +65,56 @@ function row(m: Market, marker: string, isRecent: boolean): string {
   return `${marker}${coin}${price} ${chg} ${fund} ${tag}${rec}`
 }
 
+export interface ControlRow {
+  label: string
+  selected: boolean
+}
+
+export interface ListFooterOptions {
+  mode?: 'all' | 'stocks'
+  focus?: 'stocks' | 'paper' | 'market'
+}
+
 export function listBody(
   markets: Market[],
   selected: number,
   recent: readonly string[] = [],
+  controls: ControlRow[] = [],
   rows = 7,
 ): string {
   if (!markets.length) return 'loading markets…'
-  const start = Math.max(0, Math.min(selected - Math.floor(rows / 2), markets.length - rows))
-  const slice = markets.slice(start, start + rows)
-  return slice
-    .map((m, i) => row(m, start + i === selected ? '>' : ' ', recent.includes(m.key)))
-    .join('\n')
+  const marketRows = rows - controls.length
+  const start = Math.max(
+    0,
+    Math.min(selected - Math.floor(marketRows / 2), markets.length - marketRows),
+  )
+  const slice = markets.slice(start, start + marketRows)
+  const lines: string[] = []
+  const controlSelected = controls.some(c => c.selected)
+  for (const c of controls) lines.push(`${c.selected ? '>' : ' '}${c.label}`)
+  for (let i = 0; i < slice.length; i++) {
+    const m = slice[i]
+    const isSelected = !controlSelected && start + i === selected
+    lines.push(row(m, isSelected ? '>' : ' ', recent.includes(m.key)))
+  }
+  return lines.join('\n')
 }
 
-export function listFooter(selected: number, total: number, recentCount = 0): string {
-  return `${selected + 1}/${total} · scroll · tap open · 2x exit · recent: local ${recentCount}/${RECENT_MAX}`
+export function listFooter(
+  selected: number,
+  total: number,
+  recentCount = 0,
+  opts: ListFooterOptions = {},
+): string {
+  const prefix = opts.mode === 'stocks' ? 'STOCKS · ' : ''
+  if (opts.focus === 'stocks') {
+    const row = opts.mode === 'stocks' ? 'ALL' : 'STOCKS'
+    return `${row} row · tap select · 2x exit · recent: local ${recentCount}/${RECENT_MAX}`
+  }
+  if (opts.focus === 'paper') {
+    return `PAPER row · tap open · 2x exit · recent: local ${recentCount}/${RECENT_MAX}`
+  }
+  return `${prefix}${selected + 1}/${total} · scroll · tap open · 2x exit · recent: local ${recentCount}/${RECENT_MAX}`
 }
 
 export function detailBody(m: Market, candles: number[]): string {
@@ -77,8 +125,15 @@ export function detailBody(m: Market, candles: number[]): string {
   const priceLabel = m.venue === 'BN' ? 'idx' : 'ora'
   const max = Number.isFinite(m.maxLeverage) ? `${m.maxLeverage}x` : '—'
   const period = FUNDING_PERIOD[m.venue]
+  const isTradFi = m.assetClass === 'stock' || m.assetClass === 'commodity'
+  const kind = m.assetClass === 'stock'
+    ? 'STOCK PERP'
+    : m.assetClass === 'commodity'
+      ? 'COMMODITY PERP'
+      : `${VENUE_LABEL[m.venue]} PERP`
+  const venue = isTradFi ? ` · ${VENUE_LABEL[m.venue]}` : ''
   const lines = [
-    `${VENUE_LABEL[m.venue]} PERP · mark ${fmtPrice(m.mark)}`,
+    `${kind}${venue} · mark ${fmtPrice(m.mark)}`,
     `${priceLabel} ${fmtPrice(m.index)}  24h ${fmtPct(m.change24h)}`,
     `vol ${fmtUsd(m.vol24h)}  OI ${fmtUsd(m.oiUsd)}`,
     `fund ${fmtPct(m.fundingApr, 2)} APR (${fmtPct(m.funding * 100, 4)}/${period})`,
@@ -89,5 +144,5 @@ export function detailBody(m: Market, candles: number[]): string {
 }
 
 export function detailFooter(index: number, total: number): string {
-  return `${index + 1}/${total} · scroll next · tap back · 2x exit`
+  return `${index + 1}/${total} · scroll next · tap actions · 2x exit`
 }

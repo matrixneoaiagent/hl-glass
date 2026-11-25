@@ -56,6 +56,7 @@ export async function fetchHlMarkets(limit = 20): Promise<Market[]> {
       key: `HL:${u.name}`,
       symbol: u.name,
       coin: u.name,
+      assetClass: 'crypto',
       mark,
       index: Number.isFinite(oracle) ? oracle : mark,
       change24h: ((mark - prevDay) / prevDay) * 100,
@@ -80,4 +81,20 @@ export async function fetchHlCandles(coin: string): Promise<number[]> {
     req: { coin, interval: '1h', startTime: now - 24 * 3600 * 1000 },
   })
   return rows.map(r => Number.parseFloat(r.c)).filter(Number.isFinite)
+}
+
+/** Exact marks for open paper positions; one metaAndAssetCtxs call. */
+export async function fetchHlMarks(coins: string[]): Promise<Record<string, number>> {
+  const [meta, ctxs] = await post<[{ universe: UniverseItem[] }, AssetCtx[]]>({
+    type: 'metaAndAssetCtxs',
+  })
+  const wanted = new Set(coins)
+  const out: Record<string, number> = {}
+  for (let i = 0; i < meta.universe.length; i++) {
+    const u = meta.universe[i]
+    if (!u || !wanted.has(u.name)) continue
+    const mark = Number.parseFloat(ctxs[i]?.markPx ?? '')
+    if (Number.isFinite(mark) && mark > 0) out[u.name] = mark
+  }
+  return out
 }

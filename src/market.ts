@@ -6,6 +6,9 @@
 
 export type Venue = 'HL' | 'BN'
 
+/** Asset class from venue metadata; stock/commodity rows feed the Stocks mode. */
+export type AssetClass = 'crypto' | 'stock' | 'commodity' | 'other'
+
 export interface Market {
   venue: Venue
   /** Stable id and recent-list key: `${venue}:${symbol}`. */
@@ -14,6 +17,7 @@ export interface Market {
   symbol: string
   /** Display base (HL coin, or Binance symbol without the USDT suffix). */
   coin: string
+  assetClass: AssetClass
   mark: number
   /** Oracle for Hyperliquid, index price for Binance. */
   index: number
