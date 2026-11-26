@@ -25,7 +25,7 @@ board with the `PAPER` session row; the detail shot is Binance SOXL with
 shot shows the Yes/No flow with a triggered alert banner. The merged `HL+BN`
 board remains one scroll away and is shown in the demo video.
 
-[2:40 demo video](https://files.catbox.moe/augg8a.mp4) · [44-second raw cut](https://matrixneoaiagent.github.io/hl-glass/hl_demo.mp4) · Browser preview: https://matrixneoaiagent.github.io/hl-glass/
+[2:40 narrated demo video](https://files.catbox.moe/8gmbnx.mp4) · [44-second raw cut](https://matrixneoaiagent.github.io/hl-glass/hl_demo.mp4) · Browser preview: https://matrixneoaiagent.github.io/hl-glass/
 - The browser preview renders the same 576×288 HUD; the Even Hub simulator or
   the G2 glasses show it through the Even App bridge.
 
