@@ -11,6 +11,17 @@ session — PnL, positions, alerts and confirmations while open — so HL Glass 
 a paper account on top of the read-only board. The paper session is local to the
 app; market data stays read-only.
 
+## Track fit
+
+| What the track asks for | Where it is in HL Glass |
+|---|---|
+| PnL while the session is open | `PAPER` banner and account: equity, unrealized and realized PnL, refreshed every 5 s |
+| Positions | up to five paper positions with entry, mark, leverage, approximate liq; tap to close through Yes/No |
+| Price alerts | above/below at +/-1%, +/-2%, +/-5% from the mark; triggered banner; list and cancel |
+| Quick confirmations ("Move $500 spot to margin? Yes / No") | the same Yes/No screen for move, open, close, reset, cancel |
+| Exchanges & Stocks scope | `STOCKS ·BN` mode: 245 Binance tokenized equity/commodity perps, labelled `STOCK PERP` / `COMMODITY PERP`, from `underlyingType` |
+| Crypto & DeFi scope | merged Hyperliquid + Binance USDⓈ-M board with mark/index, funding, OI, 24h range, read-only |
+
 ## Demo
 
 ![HL Glass stocks board](docs/list.png)
