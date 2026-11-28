@@ -287,6 +287,9 @@ Expected tail:
 ✓ built in ...
 ```
 
+The same `npm test` and `npm run build` run in
+`.github/workflows/pages.yml` on every push, before the Pages deploy.
+
 Open **http://localhost:5173** for the browser fallback. `ArrowUp`/`ArrowDown`
 scroll, `Enter` taps; scroll up from the first market to `PAPER`, then open the
 account. For the G2 path, run `npx evenhub-simulator http://localhost:5173` and
