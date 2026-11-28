@@ -233,8 +233,8 @@ is no wallet, no private key, no API key and no custody anywhere in the app.
 
 ## Run locally
 
-Node.js 22 or newer. The app itself is a static Vite bundle; Node is only the
-build/test tool.
+Node.js 22.18 or newer. The app itself is a static Vite bundle; Node is only
+the build/test tool.
 
 ```bash
 npm install
@@ -258,8 +258,8 @@ npm run pack           # build + evenhub pack app.json dist --sdk-ver 0.0.10
 
 ## Judge verification (two minutes)
 
-Requires Node.js 22 or newer (the tests use Node's built-in TypeScript type
-stripping; the app itself is a static bundle). No API key, account or token is
+Requires Node.js 22.18 or newer (the tests use Node's built-in TypeScript
+type stripping; the app itself is a static bundle). No API key, account or token is
 needed.
 
 ```bash
