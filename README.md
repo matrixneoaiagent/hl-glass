@@ -11,6 +11,24 @@ session — PnL, positions, alerts and confirmations while open — so HL Glass 
 a paper account on top of the read-only board. The paper session is local to the
 app; market data stays read-only.
 
+![HL Glass board in the Even Hub simulator](docs/list.png)
+
+## What you see in 30 seconds
+
+- A merged board: 36 markets from **Hyperliquid** and **Binance USDⓈ-M**, sorted by 24h volume.
+- Each row: coin, mark, 24h change, funding APR, venue tag (`·HL` / `·BN`), `·REC` for recently opened.
+- `STOCKS ·BN 245 · SOXL -31.9% · tap` (example from the capture) switches to tokenized equity/commodity perps, classified from `underlyingType`, not a hardcoded list.
+- `PAPER · eq $10,000 · flat` opens a local paper account: positions, live PnL, alerts, reset.
+- Tap a market: mark/index, OI, funding APR, 24h range and a 24-hour sparkline.
+- Tap again: `PAPER LONG`, `PAPER SHORT`, `PRICE ALERT`, `PAPER ACCOUNT`.
+- Open $100/$500/$1,000 at 1x/2x/3x; every paper action ends on a `>YES / NO` confirmation.
+- Positions show entry, mark, approximate liq and live uPnL; tap a position to close it.
+- Alerts fire above/below ±1/2/5%; `TEST @ MARK` exercises the banner without waiting for a move.
+- Controls are the temple touchpad: scroll, tap, double-tap. No keyboard on the glasses.
+
+**No keys. No orders. No custody.** Market data is public and read-only; paper
+state is local to the app. The app has no backend, no account and no token.
+
 ## Track fit
 
 | What the track asks for | Where it is in HL Glass |
@@ -19,26 +37,27 @@ app; market data stays read-only.
 | Positions | up to five paper positions with entry, mark, leverage, approximate liq; tap to close through Yes/No |
 | Price alerts | above/below at +/-1%, +/-2%, +/-5% from the mark; triggered banner; list and cancel |
 | Quick confirmations ("Move $500 spot to margin? Yes / No") | the same Yes/No screen for move, open, close, reset, cancel |
-| Exchanges & Stocks scope | `STOCKS ·BN` mode: 245 Binance tokenized equity/commodity perps, labelled `STOCK PERP` / `COMMODITY PERP`, from `underlyingType` |
+| Exchanges & Stocks scope | `STOCKS ·BN` mode: Binance tokenized equity/commodity perps (about 245 at the time of writing), labelled `STOCK PERP` / `COMMODITY PERP`, from `underlyingType` |
 | Crypto & DeFi scope | merged Hyperliquid + Binance USDⓈ-M board with mark/index, funding, OI, 24h range, read-only |
 
 ## Demo
 
-![HL Glass stocks board](docs/list.png)
 ![HL Glass stock-perp detail](docs/detail.png)
 ![HL Glass paper position with live PnL](docs/paper.png)
 ![HL Glass paper confirmation and alert banner](docs/confirm.png)
 
 Screenshots are 1280×800 compositions of the 576×288 framebuffer captured in
-the official Even Hub simulator. The board shot is the `STOCKS ·BN` filtered
-board with the `PAPER` session row; the detail shot is Binance SOXL with
-`STOCK PERP`; the paper shot shows an open long with live PnL; the confirmation
-shot shows the Yes/No flow with a triggered alert banner. The merged `HL+BN`
-board remains one scroll away and is shown in the demo video.
+the official Even Hub simulator. The board shot at the top of this README is
+the `STOCKS ·BN` filtered board with the `PAPER` session row; the detail shot is
+Binance SOXL with `STOCK PERP`; the paper shot shows an open long with live PnL;
+the confirmation shot shows the Yes/No flow with a triggered alert banner. The
+merged `HL+BN` board remains one scroll away and is shown in the demo video.
 
-[2:40 narrated demo video](https://raw.githubusercontent.com/matrixneoaiagent/hl-glass/main/docs/hl_demo_voiced.mp4) · [44-second raw cut](https://matrixneoaiagent.github.io/hl-glass/hl_demo.mp4) · Browser preview: https://matrixneoaiagent.github.io/hl-glass/
+[2:40 narrated demo video](https://matrixneoaiagent.github.io/hl-glass/hl_demo_voiced.mp4) · [44-second raw cut](https://matrixneoaiagent.github.io/hl-glass/hl_demo.mp4) · Browser preview: https://matrixneoaiagent.github.io/hl-glass/
 - The browser preview renders the same 576×288 HUD; the Even Hub simulator or
   the G2 glasses show it through the Even App bridge.
+- The narrated link is served by GitHub Pages as `video/mp4`; the copy in
+  `docs/` is the same file for offline review.
 
 ## Why
 
@@ -58,8 +77,8 @@ live PnL, an alert and a quick confirmation, all on the glasses.
 - **Stocks mode**: a `STOCKS ·BN` control row opens a filtered list of every
   TRADING Binance tokenized equity/commodity perp classified from
   `exchangeInfo.underlyingType` (SOXL, NVDA, XAU, SOXS, SNDK, QQQ, …). The mode
-  is data-driven, not a hardcoded three-symbol list. In the current live API it
-  is 245 markets.
+  is data-driven, not a hardcoded three-symbol list. The count changes with
+  Binance listings; it was 245–247 during the hackathon.
 - **Source-aware detail**: venue label, mark plus oracle (Hyperliquid) or index
   price (Binance), 24h change, 24h volume, OI in USD, funding APR, max leverage,
   24h range and a sparkline from that venue's hourly closes. Tokenized
@@ -130,9 +149,14 @@ double-tap = exit.
 
 ## Stack
 
-- Vite + TypeScript, no framework.
-- `@evenrealities/even_hub_sdk` text containers (header, body, PAPER banner,
-  footer), the Even App bridge and its local storage API.
+- Vite 5 + TypeScript 5.7, no framework, no runtime server.
+- `@evenrealities/even_hub_sdk` 0.0.10 text containers (header, body, PAPER
+  banner, footer), the Even App bridge and its local storage API.
+- `app.json` declares the `network` permission with exactly two origins:
+  `https://api.hyperliquid.xyz` and `https://fapi.binance.com`. The Even App
+  blocks any other destination before the request leaves the WebView; CORS `*`
+  is a second, independent gate. See the
+  [Even networking docs](https://hub.evenrealities.com/docs/build/networking).
 - Hyperliquid public API: `POST https://api.hyperliquid.xyz/info` with
   `metaAndAssetCtxs` (marks, oracle, funding, OI), `candleSnapshot` (24×1 h
   closes) and `metaAndAssetCtxs` again for the 5-second paper marks.
@@ -209,8 +233,12 @@ is no wallet, no private key, no API key and no custody anywhere in the app.
 
 ## Run locally
 
+Node.js 22 or newer. The app itself is a static Vite bundle; Node is only the
+build/test tool.
+
 ```bash
 npm install
+npm test               # 17 tests, no browser or hardware
 npm run dev            # http://localhost:5173
 npx evenhub-simulator http://localhost:5173
 ```
@@ -225,7 +253,64 @@ but the G2 scroll/tap/2x path is the supported control scheme.
 
 ```bash
 npm run build          # tsc --noEmit && vite build
-npm run pack           # build + evenhub pack app.json dist
+npm run pack           # build + evenhub pack app.json dist --sdk-ver 0.0.10
+```
+
+## Judge verification (two minutes)
+
+Requires Node.js 22 or newer (the tests use Node's built-in TypeScript type
+stripping; the app itself is a static bundle). No API key, account or token is
+needed.
+
+```bash
+git clone https://github.com/matrixneoaiagent/hl-glass
+cd hl-glass
+npm install
+npm test               # pure-function and manifest tests
+npm run build          # strict TypeScript + Vite production build
+npm run dev            # http://localhost:5173
+```
+
+Expected tail:
+
+```text
+> polyglass@0.3.0 test
+> node --test test/*.test.mjs
+
+ℹ tests 17
+ℹ pass 17
+ℹ fail 0
+
+> polyglass@0.3.0 build
+> tsc --noEmit && vite build
+
+✓ built in ...
+```
+
+Open **http://localhost:5173** for the browser fallback. `ArrowUp`/`ArrowDown`
+scroll, `Enter` taps; scroll up from the first market to `PAPER`, then open the
+account. For the G2 path, run `npx evenhub-simulator http://localhost:5173` and
+use scroll/tap/double-tap. The GitHub Pages preview is the same bundle:
+https://matrixneoaiagent.github.io/hl-glass/
+
+Check the live public feeds directly (both are keyless):
+
+```bash
+curl -s -X POST https://api.hyperliquid.xyz/info \
+  -H 'content-type: application/json' \
+  -d '{"type":"metaAndAssetCtxs"}' | head -c 120
+curl -s 'https://fapi.binance.com/fapi/v1/ticker/24hr?symbol=BTCUSDT' | head -c 120
+```
+
+If either venue is unreachable, the header says `HL down` or `BN down` and the
+other venue stays usable. The app never falls back to fake rows or prices.
+
+Packaging (optional; produces a local `.ehpk`, does not upload):
+
+```bash
+npm run pack
+# Stamped .../out.ehpk
+# min_app_version 2.2.5  (SDK 0.0.10, bundled map)
 ```
 
 ## Layout
@@ -248,20 +333,69 @@ npm run pack           # build + evenhub pack app.json dist
 └──────────────────────────────────────────────────────────┘
 ```
 
-## What existed before the hackathon
+## What existed before 23 November
 
 The repository was created on 2026-11-24 for the Even Realities G2 hackathon
 with a Hyperliquid-only board. The Binance USDⓈ-M source, the merged board and
 source-qualified recent keys were added on 2026-11-25, followed by Stocks mode
-and the local paper session. The Even Hub SDK/templates and the public exchange
-APIs are external dependencies; no app code predates the event. The demo video
-was recorded in the official Even Hub simulator.
+and the local paper session. **No HL Glass application code predates 23 November
+2026.** The following existing work is used:
+
+- **Even Hub SDK** `@evenrealities/even_hub_sdk` 0.0.10 (MIT) — text
+  containers, the Even App bridge, event types and local storage. Installed
+  from npm; not modified or vendored.
+- **Even Hub minimal template** `evenhub-templates/minimal` (MIT, commit
+  `8cb0135`, copyright David Yu / Even Realities) — the documented `app.json`
+  shape, Vite + TypeScript project layout and `waitForEvenAppBridge()` boot
+  pattern. The board, market adapters, paper engine and screens are new for
+  this project.
+- **Even Hub CLI** 0.1.14 and **simulator** 0.7.3 — build/pack and simulator
+  tooling only. The CLI's `evenhub pack` format is not app code.
+- **Vite 5** and **TypeScript 5.7** — build tooling.
+- **Hyperliquid public API** and **Binance USDⓈ-M public API** — live market
+  data over keyless public endpoints. No exchange SDK, account or key.
+- Screenshots and the demo video were captured in the official Even Hub
+  simulator; no G2 hardware was used.
+
+`package-lock.json` pins the exact dependency versions. The MIT notice for the
+template and SDK is repeated in [`NOTICE`](NOTICE).
+
+## Safety: what it can and cannot do
+
+| | |
+|---|---|
+| **Can** | Read public Hyperliquid and Binance USDⓈ-M market data: marks, oracle/index prices, funding, open interest, 24h stats and candles. |
+| **Can** | Keep an 8-entry recent list and a paper account (max 5 positions, 5 alerts) in the Even Hub local store, mirrored to browser `localStorage` when the bridge is absent. |
+| **Can** | Simulate open/close at the current mark, show live paper PnL, fire local price alerts, and require `>YES / NO` before open, close, move, reset or cancel. |
+| **Cannot** | Place, amend or cancel a real order; sign a transaction; connect an exchange account; deposit, withdraw or hold funds. |
+| **Cannot** | Read a private key, seed phrase, API key or wallet. There is no wallet code, no signing code and no order endpoint anywhere in the app. |
+| **Cannot** | Send your data to a backend. The only network calls are public market reads; there is no server, account, telemetry, token, pairing code or allow-list because there is no backend to protect. |
+| **Cannot** | Undo a paper fill. Closing is a separate confirmed action; `RESET PAPER` restores spot $9,500, free margin $500, realized $0 and clears all positions and alerts. |
+| **Bounded** | 5 positions, 5 alerts, 8 recent keys. The paper store validates every loaded value and drops malformed entries. |
+
+There is no real-money path to secure: the app cannot move funds even if the
+device is lost, because it holds no key and talks to no trading endpoint. The
+residual risks are a stale mark if a venue is offline (the last observed mark is
+kept and labelled by the venue) and the simplified liquidation estimate, which
+is a paper buffer, not an exchange risk engine.
+
+**Why there is no proxy server.** The hackathon guidance recommends routing
+external calls through your own backend. HL Glass deliberately has no server:
+it has no secret to protect, no user account and no write path, and it reads
+only public market endpoints. A proxy would add a host, a hop and an attack
+surface without changing what the app can do. The manifest still whitelists the
+two origins, and both APIs return CORS `*`; if a judge or a future deployment
+adds a proxy, the app's data layer is the only code that changes.
 
 ## Data and honesty
 
 - Prices, funding, open interest and candles come from the public Hyperliquid
   and Binance APIs. The app is read-only for trading and cannot place orders.
   The only writes are local recent keys and the local paper session.
+- Network access is limited to the two origins in `app.json`
+  (`https://api.hyperliquid.xyz`, `https://fapi.binance.com`). No other origin
+  is whitelisted, so the Even App blocks it before the request leaves the
+  WebView.
 - **PAPER is simulated.** It never sends an order, never asks for a key or
   signature, and never touches a real account. Fills use the current mark with
   no slippage, fees or funding; the liquidation estimate is approximate. It is

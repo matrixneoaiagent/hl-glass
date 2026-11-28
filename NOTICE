@@ -1,0 +1,18 @@
+HL Glass
+Copyright (c) 2026 Matrix Neo
+
+This project uses the following external work:
+
+- @evenrealities/even_hub_sdk 0.0.10 (MIT), Even Realities.
+- @evenrealities/evenhub-cli 0.1.14 and @evenrealities/evenhub-simulator
+  0.7.3 (MIT), tooling only.
+- The official Even Hub minimal template,
+  https://github.com/even-realities/evenhub-templates (commit 8cb0135),
+  Copyright (c) 2026 David Yu / Even Realities, MIT. HL Glass follows that
+  template's app.json shape, Vite + TypeScript layout and bridge boot pattern;
+  the application code in this repository was written for the hackathon.
+- Hyperliquid public API and Binance USDⓈ-M public API, used as live public
+  market-data sources. No SDK, account or key is included.
+
+The MIT text for HL Glass is in LICENSE. The dependencies are installed from
+npm and retain their own licenses in node_modules.

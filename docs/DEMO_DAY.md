@@ -8,21 +8,23 @@ the live GitHub Pages build; every step below was exercised in a browser.
 
 1. `https://matrixneoaiagent.github.io/hl-glass/` — the browser preview renders
    the same 576×288 framebuffer as the glasses.
-2. `https://files.catbox.moe/8gmbnx.mp4` — the 2:40 narrated demo, as a fallback
-   if the live network or the preview fails.
+2. `https://matrixneoaiagent.github.io/hl-glass/hl_demo_voiced.mp4` — the 2:40
+   narrated demo, as a fallback if the live network or the preview fails. It is
+   served by GitHub Pages as `video/mp4`. The same file is in `docs/` for
+   offline review.
 3. The submission page (`dorahacks.io/hackathon/even-realities`) with Build 51815.
 
 ## The 3-minute path (timings from the rehearsal)
 
 | Time | Action | What the judges see |
 |---|---|---|
-| 0:00 | Land on the board | `HL GLASS · top 36 · HL+BN`, the `STOCKS ·BN 245` row, the `PAPER · eq $10,000 · flat` row, merged BTC/ETH/SOXL/XAU rows tagged `·BN` / `·HL` |
+| 0:00 | Land on the board | `HL GLASS · top 36 · HL+BN`, the `STOCKS ·BN` row (about 245 markets), the `PAPER · eq $10,000 · flat` row, merged BTC/ETH/SOXL/XAU rows tagged `·BN` / `·HL` |
 | 0:20 | Press `ArrowDown` twice, `Enter` | Market detail: `SOXL · Binance`, `STOCK PERP`, mark/index, 24h vol, OI, funding APR, range, sparkline |
 | 0:45 | `Enter` | PAPER menu: `PAPER LONG`, `PAPER SHORT`, `PRICE ALERT`, `PAPER ACCOUNT`, `BACK TO MARKET`, `BACK TO LIST` |
 | 0:55 | `Enter` on `PAPER LONG` | Ticket: `NOTIONAL $500`, `LEVERAGE 1x`, margin, approximate liq |
 | 1:05 | `ArrowDown` twice → `CONFIRM OPEN` → `Enter` | Confirmation: `OPEN PAPER LONG? SOXL $500 · 1x`, entry, margin, liq estimate, `>YES / NO` |
 | 1:15 | `Enter` on `YES` | `PAPER LONG OPENED · SOXL $500`; the position row shows live PnL (rehearsal showed `-$0.15` moving with the mark) |
-| 1:30 | Back to the board, tap `STOCKS ·BN` | 245 tokenized equity/commodity perps filtered from `underlyingType`, each labelled `STOCK PERP` / `COMMODITY PERP` |
+| 1:30 | Back to the board, tap `STOCKS ·BN` | The tokenized equity/commodity perps filtered from `underlyingType` (about 245), each labelled `STOCK PERP` / `COMMODITY PERP` |
 | 2:00 | Open `PAPER ACCOUNT` | Equity (spot + margin + locked + uPnL), realized PnL, `MOVE $500 SPOT -> MARGIN` through Yes/No |
 | 2:20 | `PRICE ALERT` → `TEST @ MARK` | The alert banner triggers immediately; normal alerts wait for the real mark |
 | 2:40 | Close | Say what is local: no keys, no orders, no custody; Binance-only and Hyperliquid-only fallbacks documented in the README |
